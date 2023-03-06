@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 
-
+_BASE_DATA_PATH = "/home/yh/.medmnist"
 class CIFAR10(VisionDataset):
     """`CIFAR10 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
 
@@ -50,7 +50,7 @@ class CIFAR10(VisionDataset):
     }
 
     def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, index=None, base_sess=None):
+                 download=False, index=None, base_sess=None, args=None):
 
         super(CIFAR10, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
@@ -69,8 +69,14 @@ class CIFAR10(VisionDataset):
         # else:
         #     downloaded_list = self.test_list
 
+        tvmnists = []
         if self.train:
-            downloaded_list = self.train_list
+            # downloaded_list = self.train_list
+            for s in args.baseset:
+                tvmnist = eval(s)(
+                    root=_BASE_DATA_PATH, split="train", download=False,
+                    as_rgb=True)
+                tvmnists.append(tvmnist)
             self.transform = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
@@ -79,6 +85,11 @@ class CIFAR10(VisionDataset):
             ])
         else:
             downloaded_list = self.test_list
+            for s in args.baseset:
+                tvmnist = eval(s)(
+                    root=_BASE_DATA_PATH, split="test", download=False,
+                    as_rgb=True)
+                tvmnists.append(tvmnist)
             self.transform = transforms.Compose([
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.507, 0.487, 0.441], std=[0.267, 0.256, 0.276])
@@ -87,21 +98,19 @@ class CIFAR10(VisionDataset):
         self.data = []
         self.targets = []
 
-        # now load the picked numpy arrays
-        for file_name, checksum in downloaded_list:
-            file_path = os.path.join(self.root, self.base_folder, file_name)
-            with open(file_path, 'rb') as f:
-                entry = pickle.load(f, encoding='latin1')
-                self.data.append(entry['data'])
-                if 'labels' in entry:
-                    self.targets.extend(entry['labels'])
-                else:
-                    self.targets.extend(entry['fine_labels'])
-
-        self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
-        self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
-
-        self.targets = np.asarray(self.targets)
+        last_max = -1
+        for domain, tvmnist in enumerate(tvmnists):
+            if len(tvmnist.imgs.shape) == 3:
+                new_data = np.expand_dims(tvmnist.imgs, -1).repeat(3, axis=-1)
+            else:
+                new_data = tvmnist.imgs
+            self.data.append(new_data)
+            new_labels = tvmnist.labels + last_max + 1
+            self.targets.append(new_labels)
+            last_max = np.max(new_labels)
+            print(new_data.shape, new_labels.shape)
+        self.data = np.concatenate(self.data, axis=0)
+        self.targets = np.concatenate(self.targets, axis=0).squeeze(-1)
 
         if base_sess:
             # label_sel=[]
