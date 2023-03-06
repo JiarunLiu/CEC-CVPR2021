@@ -16,7 +16,7 @@ def base_train(model, trainloader, optimizer, scheduler, epoch, args):
 
         logits = model(data)
         logits = logits[:, :args.base_class]
-        loss = F.cross_entropy(logits, train_label)
+        loss = F.cross_entropy(logits, train_label.long())
         acc = count_acc(logits, train_label)
 
         total_loss = loss
@@ -82,7 +82,7 @@ def test(model, testloader, epoch, args, session):
             data, test_label = [_.cuda() for _ in batch]
             logits = model(data)
             logits = logits[:, :test_class]
-            loss = F.cross_entropy(logits, test_label)
+            loss = F.cross_entropy(logits, test_label.long())
             acc = count_acc(logits, test_label)
 
             vl.add(loss.item())

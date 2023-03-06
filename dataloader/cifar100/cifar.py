@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+from medmnist import *
 
 _BASE_DATA_PATH = "/home/yh/.medmnist"
 class CIFAR10(VisionDataset):
@@ -57,12 +58,12 @@ class CIFAR10(VisionDataset):
         self.root = os.path.expanduser(root)
         self.train = train  # training set or test set
 
-        if download:
-            self.download()
+        #if download:
+        #    self.download()
 
-        if not self._check_integrity():
-            raise RuntimeError('Dataset not found or corrupted.' +
-                               ' You can use download=True to download it')
+        #if not self._check_integrity():
+        #    raise RuntimeError('Dataset not found or corrupted.' +
+        #                       ' You can use download=True to download it')
 
         # if self.train:
         #     downloaded_list = self.train_list
@@ -124,7 +125,7 @@ class CIFAR10(VisionDataset):
             else:
                 self.data, self.targets = self.SelectfromDefault(self.data, self.targets, index)
 
-        self._load_meta()
+        # self._load_meta()
 
     def SelectfromDefault(self, data, targets, index):
         data_tmp = []

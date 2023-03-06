@@ -5,11 +5,12 @@ from dataloader.sampler import CategoriesSampler
 def set_up_datasets(args):
     if args.dataset == 'cifar100':
         import dataloader.cifar100.cifar as Dataset
-        args.base_class = 60
-        args.num_classes=100
+        args.base_class = 27
+        args.num_classes = 42
         args.way = 5
         args.shot = 5
         args.sessions = 9
+        args.baseset = ["PathMNIST","DermaMNIST", "OrganAMNIST", "RetinaMNIST", "BreastMNIST", "BloodMNIST"]
     if args.dataset == 'cub200':
         import dataloader.cub200.cub200 as Dataset
         args.base_class = 100
@@ -40,9 +41,9 @@ def get_base_dataloader(args):
     if args.dataset == 'cifar100':
 
         trainset = args.Dataset.CIFAR100(root=args.dataroot, train=True, download=True,
-                                         index=class_index, base_sess=True)
+                                         index=class_index, base_sess=True, args=args)
         testset = args.Dataset.CIFAR100(root=args.dataroot, train=False, download=False,
-                                        index=class_index, base_sess=True)
+                                        index=class_index, base_sess=True, args=args)
 
     if args.dataset == 'cub200':
         trainset = args.Dataset.CUB200(root=args.dataroot, train=True,
@@ -69,9 +70,9 @@ def get_base_dataloader_meta(args):
     class_index = np.arange(args.base_class)
     if args.dataset == 'cifar100':
         trainset = args.Dataset.CIFAR100(root=args.dataroot, train=True, download=True,
-                                         index=class_index, base_sess=True)
+                                         index=class_index, base_sess=True, args=args)
         testset = args.Dataset.CIFAR100(root=args.dataroot, train=False, download=False,
-                                        index=class_index, base_sess=True)
+                                        index=class_index, base_sess=True, args=args)
 
     if args.dataset == 'cub200':
         trainset = args.Dataset.CUB200(root=args.dataroot, train=True,
@@ -102,7 +103,7 @@ def get_new_dataloader(args,session):
     if args.dataset == 'cifar100':
         class_index = open(txt_path).read().splitlines()
         trainset = args.Dataset.CIFAR100(root=args.dataroot, train=True, download=False,
-                                         index=class_index, base_sess=False)
+                                         index=class_index, base_sess=False, args=args)
     if args.dataset == 'cub200':
         trainset = args.Dataset.CUB200(root=args.dataroot, train=True,
                                        index_path=txt_path)
